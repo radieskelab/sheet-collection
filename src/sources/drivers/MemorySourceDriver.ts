@@ -3,6 +3,13 @@ import { MemorySheetSource } from "../MemorySheetSource";
 import { SheetSource } from "../SheetSource";
 import { SourceDriver } from "./SourceDriver";
 
+/**
+ * @preserve
+ * In-memory storage driver intended for tests and temporary data.
+ *
+ * Collections exist only within this driver instance and are not persisted or
+ * shared with Google Sheets. Connection properties are not used.
+ */
 export class MemorySourceDriver implements SourceDriver {
 
   private sheets = new Map<
@@ -10,8 +17,24 @@ export class MemorySourceDriver implements SourceDriver {
     MemorySheetSource
   >();
 
+  /**
+   * @preserve
+   * Creates an empty in-memory driver.
+   *
+   * @param {Object} [properties] Accepted for the common driver constructor and
+   * ignored by this driver.
+   * @returns {void}
+   */
   constructor(properties?: ConnectionConfigProperties) { }
 
+  /**
+   * @preserve
+   * Gets a collection that has already been created in this connection.
+   *
+   * @param {string} collectionName Collection name.
+   * @returns {SheetSource} The existing in-memory source.
+   * @throws {Error} If the collection does not exist.
+   */
   getSheet(
     collectionName: string
   ): SheetSource {
@@ -24,6 +47,13 @@ export class MemorySourceDriver implements SourceDriver {
     return sheet;
   }
 
+  /**
+   * @preserve
+   * Gets a collection or creates an empty one.
+   *
+   * @param {string} collectionName Collection name.
+   * @returns {SheetSource} The in-memory source.
+   */
   getOrCreateSheet(
     collectionName: string
   ): SheetSource {

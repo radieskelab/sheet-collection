@@ -2,6 +2,10 @@ import { SheetAdapter } from "../adapters/SheetAdapter";
 import { RowMapper } from "../mappers/RowMapper";
 import { SheetSource } from "../sources/SheetSource";
 
+/**
+ * Document type accepted by insert operations. The `id` field is optional
+ * because the collection generates a numeric ID when one is not provided.
+ */
 type InsertDocument<T> = T extends { id: infer V }
   ? Omit<T, 'id'> & Partial<Pick<T, 'id'>>
   : T & Partial<Record<'id', unknown>>;
@@ -9,7 +13,11 @@ type InsertDocument<T> = T extends { id: infer V }
 /**
  * @preserve
  * Represents a typed collection backed by a sheet.
- * Use this class to perform CRUD operations on a named collection.
+ * Documents are plain objects whose property names map to sheet headers.
+ * With the Google driver, field values should be scalar values supported by
+ * Google Sheets (`string`, `number`, `boolean`, or `Date`); nested objects and
+ * arrays are not supported cell values. This type is not runtime schema
+ * validation.
  */
 export class Collection<T> {
 
@@ -23,8 +31,17 @@ export class Collection<T> {
 
   /**
    * @preserve
-   * Returns all documents in the collection.
-   * @returns List of documents.
+   * Returns every row after the header row as a document.
+   *
+   * Header names become document property names. Values are returned as read
+   * by the selected driver; the generic type is not checked at runtime.
+   *
+   * @returns {Object[]} All documents in the collection, or an empty array
+   * when it has no data rows.
+   *
+   * @example
+   * const users = db.collection("users");
+   * const allUsers = users.findAll();
    */
   findAll(): T[] {
     return this.adapter.findAll<T>();
@@ -32,9 +49,15 @@ export class Collection<T> {
 
   /**
    * @preserve
-   * Finds a document by its primary key `id`.
-   * @param id Identifier value.
-   * @returns The found document or `null`.
+   * Finds the first document whose `id` matches the supplied identifier.
+   *
+   * @param {*} id Identifier to search for. IDs are compared using the
+   * collection's ID matching rules; numbers and their string forms match.
+   * @returns {Object|null} The matching document, or `null` when no document
+   * is found.
+   *
+   * @example
+   * const user = users.findById(1);
    */
   findById(
     id: unknown
@@ -46,8 +69,21 @@ export class Collection<T> {
 
   /**
    * @preserve
-   * Inserts a document into the collection.
-   * @param document Document to insert.
+   * Inserts one document into the collection.
+   *
+   * The document's keys are written as headers when the sheet is empty.
+   * If `id` is omitted or `null`, a numeric ID is generated. Existing IDs
+   * must be unique.
+   *
+   * @param {Object} document Plain object containing the document fields. On Google
+   * Sheets, values should be scalar `string`, `number`, `boolean`, or `Date`
+   * values supported by `Range.setValues`.
+   * @returns {void}
+   * @throws {Error} If the document's ID is already in use or the selected
+   * driver rejects a value.
+   *
+   * @example
+   * users.insert({ name: "Ada Lovelace", active: true });
    */
   insert(
     document: InsertDocument<T>
@@ -59,13 +95,24 @@ export class Collection<T> {
 
   /**
    * @preserve
-   * Inserts multiple documents in a single operation.
+   * Inserts multiple documents in one operation.
    *
-   * Automatically creates headers when needed,
-   * preserves document order, and supports automatic
-   * ID generation.
+   * Creates headers when needed, preserves document order, and generates
+   * numeric IDs for documents without an ID. IDs must be unique both within
+   * the input and against existing documents.
    *
-   * @param documents List of documents to insert.
+   * @param {Object[]} documents Documents to insert. With the Google driver, each field
+   * should contain a scalar `string`, `number`, `boolean`, or `Date` value
+   * supported by `Range.setValues`.
+   * @returns {void}
+   * @throws {Error} If an ID is duplicated or the selected driver rejects a
+   * value.
+   *
+   * @example
+   * users.insertMany([
+   *   { name: "Ada Lovelace" },
+   *   { name: "Grace Hopper" }
+   * ]);
    */
   insertMany(
     documents: InsertDocument<T>[]
@@ -77,10 +124,18 @@ export class Collection<T> {
 
   /**
    * @preserve
-   * Updates an existing document by `id`.
-   * @param id Document identifier.
-   * @param document Fields to update.
-   * @returns `true` if the document was updated.
+   * Updates fields of the document with the given `id`.
+   *
+   * Only the provided fields are changed; fields omitted from `document`
+   * remain unchanged.
+   *
+   * @param {*} id Identifier of the document to update.
+   * @param {Object} document Fields and replacement values to write.
+   * @returns {boolean} `true` if a matching document was updated; otherwise
+   * `false`.
+   *
+   * @example
+   * const updated = users.update(1, { active: false });
    */
   update(
     id: unknown,
@@ -95,9 +150,14 @@ export class Collection<T> {
 
   /**
    * @preserve
-   * Deletes an existing document by `id`.
-   * @param id Document identifier.
-   * @returns `true` if the document was deleted.
+   * Deletes the document with the given `id`.
+   *
+   * @param {*} id Identifier of the document to delete.
+   * @returns {boolean} `true` if a matching document was deleted; otherwise
+   * `false`.
+   *
+   * @example
+   * const deleted = users.delete(1);
    */
   delete(
     id: unknown

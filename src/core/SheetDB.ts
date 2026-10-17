@@ -18,13 +18,15 @@ export class SheetDB {
    * @preserve
    * Creates a connection to a data source.
    *
-   * @param config Connection configuration.
-   * @returns Connected database instance.
+   * @param config Configuration selecting the `google` or `memory` driver.
+   * For Google Sheets, omit `properties` to use the active spreadsheet, or
+   * provide `properties.spreadsheetId` to open a specific spreadsheet.
+   * @returns A connected database instance.
+   * @throws {Error} If the selected driver cannot be initialized.
    *
    * @example
-   * const db = SheetDB.connect({
-   *   source: 'memory'
-   * });
+   * const db = SheetCollection.connect({ source: "google" });
+   * const users = db.collection("users");
    */
   static connect(
     config: ConnectionConfig
@@ -38,23 +40,19 @@ export class SheetDB {
 
   /**
    * @preserve
-   * Gets a typed collection.
+   * Gets a typed collection backed by a spreadsheet tab or memory sheet.
    *
-   * If the collection does not exist,
-   * it is created automatically.
+   * The sheet is created automatically if it does not exist. The generic
+   * type describes the document shape expected by the caller; sheet contents
+   * are mapped by their header names and are not runtime-validated against it.
    *
    * @typeParam T Type of stored documents.
-   * @param name Collection name.
-   * @returns Typed collection for the requested sheet.
+   * @param {string} name Name of the collection and spreadsheet tab.
+   * @return {Collection} Collection for the requested sheet.
    *
    * @example
-   * interface User {
-   *   id: string;
-   *   name: string;
-   * }
-   *
-   * const users =
-   *   db.collection<User>('users');
+   * const users = db.collection("users");
+   * users.insert({ name: "Ada Lovelace" });
    */
   collection<T>(
     name: string
@@ -67,12 +65,12 @@ export class SheetDB {
   }
 
   /**
-   * Gets an existing sheet.
+   * @preserve
+   * Gets an existing sheet without creating it.
    *
-   * Throws if the sheet is not found.
-   *
-   * @param name Sheet name.
-   * @returns Sheet source.
+   * @param {string} name Name of the spreadsheet tab.
+   * @returns {SheetSource} The source for the existing sheet.
+   * @throws {Error} If the sheet does not exist.
    */
   getSheet(
     name: string
@@ -81,11 +79,11 @@ export class SheetDB {
   }
 
   /**
-   * Gets an existing sheet or creates
-   * a new one if it does not exist.
+   * @preserve
+   * Gets an existing sheet or creates it if it does not exist.
    *
-   * @param name Sheet name.
-   * @returns Sheet source.
+   * @param {string} name Name of the spreadsheet tab.
+   * @returns {SheetSource} The source for the existing or newly created sheet.
    */
   getOrCreateSheet(
     name: string

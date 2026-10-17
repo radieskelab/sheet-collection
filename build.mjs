@@ -8,13 +8,17 @@ await build({
   outfile: "dist/SheetCollection.js",
   format: "iife",
   target: "es2019",
-  globalName: "SheetCollection",
   legalComments: "inline"
 });
 
 fs.copyFileSync(
   "appsscript.json",
   "dist/appsscript.json"
+);
+
+fs.copyFileSync(
+  "src/gas/Api.gs",
+  "dist/Api.gs"
 );
 
 execSync(
