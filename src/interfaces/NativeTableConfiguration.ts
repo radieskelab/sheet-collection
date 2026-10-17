@@ -1,4 +1,4 @@
-import { TableOptions } from "./CollectionOptions";
+import { TableOptions } from "@interfaces/CollectionOptions";
 
 export interface NativeTableConfiguration {
   spreadsheetId: string;

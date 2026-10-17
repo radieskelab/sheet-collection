@@ -1,4 +1,4 @@
-import { SheetSource } from './SheetSource';
+import { SheetSource } from '@sources/SheetSource';
 
 export class MemorySheetSource implements SheetSource {
 

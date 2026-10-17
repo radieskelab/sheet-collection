@@ -1,7 +1,7 @@
-import { SheetSource } from "./SheetSource";
-import { NativeTableConfiguration } from "../interfaces/NativeTableConfiguration";
-import { NativeTableState } from "../interfaces/NativeTableServiceInterfaces";
-import { NativeTableService } from "./NativeTableService";
+import { NativeTableConfiguration } from "@interfaces/NativeTableConfiguration";
+import { NativeTableState } from "@interfaces/NativeTableServiceInterfaces";
+import { SheetSource } from "@sources/SheetSource";
+import { NativeTableService } from "@sources/NativeTableService";
 
 /**
  * 

@@ -3,7 +3,7 @@
     "target": "ES2022",
     "module": "es2022",
     "lib": ["ES2022"],
-    "types": ["google-apps-script"],
+    "types": ["google-apps-script", "node"],
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -13,7 +13,17 @@
     "declaration": true,
     "sourceMap": true,
     "declarationMap": true,
-    "removeComments": false
+    "removeComments": false,
+    "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
+    "paths": {
+      "@adapters/*": ["src/adapters/*"],
+      "@core/*": ["src/core/*"],
+      "@interfaces/*": ["src/interfaces/*"],
+      "@mappers/*": ["src/mappers/*"],
+      "@sources/*": ["src/sources/*"],
+      "@shared-types/*": ["src/types/*"]
+    }
   },
   "include": ["src/**/*"]
 }

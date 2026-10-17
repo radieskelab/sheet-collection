@@ -1,5 +1,5 @@
-import { RowMapper } from "../mappers/RowMapper";
-import { SheetSource } from "../sources/SheetSource";
+import { RowMapper } from "@mappers/RowMapper";
+import { SheetSource } from "@sources/SheetSource";
 
 export class SheetAdapter {
 

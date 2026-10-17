@@ -1,5 +1,5 @@
-import { SheetSource } from "../SheetSource";
-import { CollectionOptions } from "../../interfaces/CollectionOptions";
+import { CollectionOptions } from "@interfaces/CollectionOptions";
+import { SheetSource } from "@sources/SheetSource";
 
 /**
  * Contract implemented by storage drivers used by SheetDB.

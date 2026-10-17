@@ -1,7 +1,7 @@
-import { ConnectionConfig } from "../interfaces/ConnectionConfig";
-import { GASSourceDriver } from "../sources/drivers/GASSourceDriver";
-import { MemorySourceDriver } from "../sources/drivers/MemorySourceDriver";
-import { SourceDriver } from "../sources/drivers/SourceDriver";
+import { ConnectionConfig } from "@interfaces/ConnectionConfig";
+import { GASSourceDriver } from "@sources/drivers/GASSourceDriver";
+import { MemorySourceDriver } from "@sources/drivers/MemorySourceDriver";
+import { SourceDriver } from "@sources/drivers/SourceDriver";
 
 /**
  * Selects and initializes the storage driver requested by a connection config.

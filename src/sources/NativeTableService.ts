@@ -1,11 +1,11 @@
-import { TableOptions } from '../interfaces/CollectionOptions';
+import { TableOptions } from '@interfaces/CollectionOptions';
 import {
   NativeSheetsService,
   NativeTableState
-} from '../interfaces/NativeTableServiceInterfaces';
+} from '@interfaces/NativeTableServiceInterfaces';
 import {
   NativeTableGridRange
-} from '../types/NativeTableTypes';
+} from '@shared-types/NativeTableTypes';
 
 export class NativeTableService {
   private static readonly DEFAULT_PRESET = {

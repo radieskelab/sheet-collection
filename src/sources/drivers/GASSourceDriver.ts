@@ -1,8 +1,8 @@
-import { ConnectionConfigProperties } from "../../interfaces/ConnectionConfigProperties";
-import { GASSheetSource } from "../GASSheetSource";
-import { SheetSource } from "../SheetSource";
-import { SourceDriver } from "./SourceDriver";
-import { CollectionOptions } from "../../interfaces/CollectionOptions";
+import { CollectionOptions } from "@interfaces/CollectionOptions";
+import { ConnectionConfigProperties } from "@interfaces/ConnectionConfigProperties";
+import { GASSheetSource } from "@sources/GASSheetSource";
+import { SheetSource } from "@sources/SheetSource";
+import { SourceDriver } from "@sources/drivers/SourceDriver";
 
 /**
  * @preserve

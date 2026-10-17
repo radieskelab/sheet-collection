@@ -1,9 +1,9 @@
-import { ConnectionConfig } from "../interfaces/ConnectionConfig";
-import { SourceDriver } from "../sources/drivers/SourceDriver";
-import { SheetSource } from "../sources/SheetSource";
-import { Collection } from "./Collection";
-import { Connection } from "./Connection";
-import { CollectionOptions } from "../interfaces/CollectionOptions";
+import { ConnectionConfig } from "@interfaces/ConnectionConfig";
+import { CollectionOptions } from "@interfaces/CollectionOptions";
+import { SourceDriver } from "@sources/drivers/SourceDriver";
+import { SheetSource } from "@sources/SheetSource";
+import { Collection } from "@core/Collection";
+import { Connection } from "@core/Connection";
 
 /**
  * @preserve

@@ -1,8 +1,8 @@
-import { ConnectionConfigProperties } from "../../interfaces/ConnectionConfigProperties";
-import { MemorySheetSource } from "../MemorySheetSource";
-import { SheetSource } from "../SheetSource";
-import { SourceDriver } from "./SourceDriver";
-import { CollectionOptions } from "../../interfaces/CollectionOptions";
+import { CollectionOptions } from "@interfaces/CollectionOptions";
+import { ConnectionConfigProperties } from "@interfaces/ConnectionConfigProperties";
+import { MemorySheetSource } from "@sources/MemorySheetSource";
+import { SheetSource } from "@sources/SheetSource";
+import { SourceDriver } from "@sources/drivers/SourceDriver";
 
 /**
  * @preserve

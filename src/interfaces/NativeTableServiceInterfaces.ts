@@ -3,7 +3,7 @@ import {
   NativeTableApiRequest,
   NativeTableGridRange,
   NativeTableSpreadsheetMetadata
-} from "../types/NativeTableTypes";
+} from "@shared-types/NativeTableTypes";
 
 export interface NativeSheetsService {
   Spreadsheets: {
