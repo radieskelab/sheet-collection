@@ -1,12 +1,7 @@
 import { SheetSource } from "./SheetSource";
-import { TableOptions } from "../interfaces/CollectionOptions";
-import { NativeTableService, NativeTableState } from "./NativeTableService";
-
-interface NativeTableConfiguration {
-    spreadsheetId: string;
-    collectionName: string;
-    options: TableOptions;
-}
+import { NativeTableConfiguration } from "../interfaces/NativeTableConfiguration";
+import { NativeTableState } from "../interfaces/NativeTableServiceInterfaces";
+import { NativeTableService } from "./NativeTableService";
 
 /**
  * 

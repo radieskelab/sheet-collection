@@ -1,74 +1,18 @@
 import { TableOptions } from '../interfaces/CollectionOptions';
-
-interface GridRange {
-  sheetId: number;
-  startRowIndex: number;
-  endRowIndex: number;
-  startColumnIndex: number;
-  endColumnIndex: number;
-}
-
-interface NativeTable {
-  tableId: string;
-  name: string;
-  range: GridRange;
-}
-
-interface NativeSheet {
-  properties?: {
-    sheetId?: number;
-    title?: string;
-  };
-  tables?: NativeTable[];
-}
-
-interface SpreadsheetMetadata {
-  sheets?: NativeSheet[];
-}
-
-interface AddTableResponse {
-  replies?: Array<{
-    addTable?: {
-      table?: NativeTable;
-    };
-  }>;
-}
-
-interface NativeTableRequest {
-  addTable?: { table: Record<string, unknown> };
-  updateTable?: {
-    table: Record<string, unknown>;
-    fields: string;
-  };
-  deleteTable?: { tableId: string };
-}
-
-interface NativeSheetsService {
-  Spreadsheets: {
-    get(
-      spreadsheetId: string,
-      options: { fields: string }
-    ): SpreadsheetMetadata;
-    batchUpdate(
-      request: { requests: NativeTableRequest[] },
-      spreadsheetId: string
-    ): AddTableResponse;
-  };
-}
-
-export interface NativeTableState {
-  tableId: string;
-  name: string;
-  range: GridRange;
-}
-
-const DEFAULT_PRESET = {
-  headerColor: '#3C78D8',
-  firstBandColor: '#FFFFFF',
-  secondBandColor: '#EAF2F8'
-};
+import {
+  NativeSheetsService,
+  NativeTableState
+} from '../interfaces/NativeTableServiceInterfaces';
+import {
+  NativeTableGridRange
+} from '../types/NativeTableTypes';
 
 export class NativeTableService {
+  private static readonly DEFAULT_PRESET = {
+    headerColor: '#3C78D8',
+    firstBandColor: '#FFFFFF',
+    secondBandColor: '#EAF2F8'
+  };
   private readonly service: NativeSheetsService;
   private table: NativeTableState | null | undefined;
   private readonly name: string;
@@ -95,9 +39,9 @@ export class NativeTableService {
     this.service = service ?? globalService ?? this.missingService();
     this.name = options.name ?? this.createDefaultName(collectionName);
     this.rowColors = {
-      headerColor: options.headerColor ?? DEFAULT_PRESET.headerColor,
-      firstBandColor: options.firstBandColor ?? DEFAULT_PRESET.firstBandColor,
-      secondBandColor: options.secondBandColor ?? DEFAULT_PRESET.secondBandColor
+      headerColor: options.headerColor ?? NativeTableService.DEFAULT_PRESET.headerColor,
+      firstBandColor: options.firstBandColor ?? NativeTableService.DEFAULT_PRESET.firstBandColor,
+      secondBandColor: options.secondBandColor ?? NativeTableService.DEFAULT_PRESET.secondBandColor
     };
 
     Object.values(this.rowColors).forEach(color => this.validateColor(color));
@@ -141,7 +85,7 @@ export class NativeTableService {
   createTable(values: unknown[][]): NativeTableState {
     const headers = this.validateValues(values);
 
-    const range: GridRange = {
+    const range: NativeTableGridRange = {
       sheetId: this.sheetId,
       startRowIndex: 0,
       endRowIndex: values.length,
@@ -192,7 +136,7 @@ export class NativeTableService {
     const headers = values[0]?.map(String) ?? [];
     this.validateHeaders(headers);
 
-    const range: GridRange = {
+    const range: NativeTableGridRange = {
       ...table.range,
       endRowIndex: table.range.startRowIndex + values.length,
       endColumnIndex: table.range.startColumnIndex + headers.length
@@ -217,7 +161,7 @@ export class NativeTableService {
   }
 
   resizeTableRows(table: NativeTableState, rowCount: number): NativeTableState {
-    const range: GridRange = {
+    const range: NativeTableGridRange = {
       ...table.range,
       endRowIndex: table.range.startRowIndex + rowCount
     };
