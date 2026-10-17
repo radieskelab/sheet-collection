@@ -71,15 +71,13 @@ assert.throws(
 );
 
 const allReg = users.findAll();
-console.log('findAll', allReg)
-assert.equal(allReg.length, 2);
+assert.deepEqual(allReg, [
+  { id: '1', name: 'Eduardo' },
+  { id: '2', name: 'Maria' }
+]);
 
 const findByID = users.findById('1');
-console.log('findByID 1', findByID);
-assert.equal(
-    findByID.name,
-    'Eduardo'
-);
+assert.deepEqual(findByID, { id: '1', name: 'Eduardo' });
 
 users.update(
   '1',
@@ -89,16 +87,11 @@ users.update(
 );
 
 const update = users.findById('1');
-console.log('update 1', update)
-assert.equal(
-  update.name,
-  'Carlos'
-);
+assert.deepEqual(update, { id: '1', name: 'Carlos' });
 
 users.delete('2');
 const del = users.findAll();
-console.log('delete 2', del);
-assert.equal(del.length, 1);
+assert.deepEqual(del, [{ id: '1', name: 'Carlos' }]);
 
 console.log(
   '✓ Distribution test passed'

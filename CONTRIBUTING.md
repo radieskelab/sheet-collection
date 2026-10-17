@@ -12,16 +12,20 @@ Install the project dependencies:
 npm ci
 ```
 
-Run the automated tests, build, and distribution smoke test:
+Run the tests with coverage, type-check the test sources, build, and run the
+distribution smoke test:
 
 ```sh
 npm run verify
 ```
 
-The `verify` script runs the unit tests, builds the library, and checks the
-generated distribution with a consumer smoke test. The GitHub Actions pipeline
-runs `npm run verify` for pull requests targeting `main` and for pushes to
-`main`.
+The `verify` script runs the unit and in-memory integration tests with a V8
+coverage report, type-checks the TypeScript test sources, builds the library,
+and checks the generated distribution with a consumer smoke test. Coverage
+thresholds start below the current baseline (80% statements and lines, 70%
+branches, and 90% functions) to prevent substantial regressions while leaving
+room to expand coverage. The GitHub Actions pipeline runs `npm run verify` for
+pull requests targeting `main` and for pushes to `main`.
 
 The build outputs the bundled JavaScript, Apps Script manifest, generated
 TypeScript declarations, and a documented `Api.gs` facade.
@@ -60,6 +64,12 @@ const db = SheetCollection.connect({
   source: "memory"
 });
 ```
+
+Tests are grouped by intent under `tests/unit`, `tests/integration`, and
+`tests/consumer`. The GAS adapter and driver tests use narrow Apps Script mocks;
+they validate our calls and handling, not behavior of Google's live services.
+Run `npm test` for a fast test run, `npm run typecheck:test` for test-source
+type checking, or `npm run test:coverage` to inspect the coverage baseline.
 
 ## Architecture
 

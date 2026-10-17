@@ -223,6 +223,25 @@ describe('Collection', () => {
 
   });
 
+  it('should return an empty list and null when the collection has no documents', () => {
+    const users = createMemoryDatabase().collection<User>('users');
+
+    expect(users.findAll()).toEqual([]);
+    expect(users.findById('missing')).toBeNull();
+  });
+
+  it('should find ids regardless of whether the number or its string form is used', () => {
+    interface NumericUser {
+      id: number;
+      name: string;
+    }
+
+    const users = createMemoryDatabase().collection<NumericUser>('users');
+    users.insert({ id: 1, name: 'Eduardo' });
+
+    expect(users.findById('1')).toEqual({ id: 1, name: 'Eduardo' });
+  });
+
   it('should update document', () => {
 
     const db = createMemoryDatabase();
@@ -235,12 +254,12 @@ describe('Collection', () => {
       name: 'Eduardo'
     });
 
-    users.update(
+    expect(users.update(
       '1',
       {
         name: 'Carlos'
       }
-    );
+    )).toBe(true);
 
     expect(
       users.findById('1')
@@ -249,6 +268,13 @@ describe('Collection', () => {
       name: 'Carlos'
     });
 
+  });
+
+  it('should return false when updating a missing document', () => {
+    const users = createMemoryDatabase().collection<User>('users');
+
+    expect(users.update('missing', { name: 'Carlos' })).toBe(false);
+    expect(users.findAll()).toEqual([]);
   });
 
   it('should delete document', () => {
@@ -263,11 +289,63 @@ describe('Collection', () => {
       name: 'Eduardo'
     });
 
-    users.delete('1');
+    expect(users.delete('1')).toBe(true);
 
     expect(
       users.findAll()
     ).toHaveLength(0);
 
+  });
+
+  it('should return false when deleting a missing document without changing other rows', () => {
+    const users = createMemoryDatabase().collection<User>('users');
+    users.insertMany([
+      { id: '1', name: 'Eduardo' },
+      { id: '2', name: 'Maria' }
+    ]);
+
+    expect(users.delete('missing')).toBe(false);
+    expect(users.findAll()).toEqual([
+      { id: '1', name: 'Eduardo' },
+      { id: '2', name: 'Maria' }
+    ]);
+  });
+
+  it('should add newly encountered fields to the headers while preserving existing rows', () => {
+    interface UserWithAge extends User {
+      age?: number;
+    }
+
+    const users = createMemoryDatabase().collection<UserWithAge>('users');
+    users.insert({ id: '1', name: 'Eduardo' });
+    users.insert({ id: '2', name: 'Maria', age: 24 });
+
+    expect(users.findAll()).toEqual([
+      { id: '1', name: 'Eduardo' },
+      { id: '2', name: 'Maria', age: 24 }
+    ]);
+  });
+
+  it('should not partially insert a batch when it contains duplicate ids', () => {
+    const users = createMemoryDatabase().collection<User>('users');
+    users.insert({ id: '1', name: 'Eduardo' });
+
+    expect(() => users.insertMany([
+      { id: '2', name: 'Maria' },
+      { id: '2', name: 'Ana' }
+    ])).toThrow("ID '2' is already in use.");
+    expect(users.findAll()).toEqual([
+      { id: '1', name: 'Eduardo' }
+    ]);
+  });
+
+  it('should do nothing when inserting an empty batch', () => {
+    const db = createMemoryDatabase();
+    const users = db.collection<User>('users');
+
+    users.insertMany([]);
+
+    expect(users.findAll()).toEqual([]);
+    expect(db.getSheet('users').getLastRow()).toBe(0);
   });
 });
