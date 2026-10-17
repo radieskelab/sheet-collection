@@ -123,6 +123,10 @@ Run the automated build and distribution smoke test locally:
 npm run verify
 ```
 
+The GitHub Actions pipeline runs `npm run verify` for pull requests targeting
+`main` and for pushes to `main`. It installs the locked dependencies with
+`npm ci`, then runs the unit tests, build, and distribution smoke test.
+
 To validate autocomplete in the Apps Script editor:
 
 1. Build and push the generated project with `npm run push`.
