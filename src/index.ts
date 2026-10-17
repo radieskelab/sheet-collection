@@ -1,4 +1,4 @@
-import { SheetDB } from './core/SheetDB';
+import { SheetDB } from '@core/SheetDB';
 
 const globalScope = typeof globalThis !== "undefined" ? globalThis : this;
 

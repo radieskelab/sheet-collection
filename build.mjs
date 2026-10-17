@@ -28,4 +28,11 @@ execSync(
   }
 );
 
+execSync(
+  "npx tsc-alias --project tsconfig.json",
+  {
+    stdio: "inherit"
+  }
+);
+
 console.log("Build concluído com sucesso para dist/!");

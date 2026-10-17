@@ -1,4 +1,4 @@
-import { SheetSource } from './SheetSource';
+import { SheetSource } from '@sources/SheetSource';
 
 export class MemorySheetSource implements SheetSource {
 
@@ -21,6 +21,10 @@ export class MemorySheetSource implements SheetSource {
 
     appendRow(values: unknown[]): void {
         this.values.push([...values]);
+    }
+
+    appendRows(values: unknown[][]): void {
+        values.forEach(row => this.values.push([...row]));
     }
 
     setValues(values: unknown[][]): void {

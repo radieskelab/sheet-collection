@@ -65,7 +65,7 @@ Focus on your data, not spreadsheet plumbing.
 * Driver architecture
 * Google Apps Script compatible
 * Zero runtime dependencies
-* TypeScript-first development
+* TypeScript API
 
 ---
 
@@ -104,46 +104,6 @@ function testLibrary() {
 }
 ```
 
-### Build and verify autocomplete
-
-The build outputs the bundled JavaScript, Apps Script manifest, generated
-TypeScript declarations, and a documented `Api.gs` facade. The facade exposes
-`connect()` as a top-level Apps Script library function. That is the API point
-for which the editor shows JSDoc. The editor may not provide member completion
-for `db` and `clients`, even though the returned objects have those methods at
-runtime; the method reference below documents their signatures and behavior.
-
-```javascript
-const db = SheetCollection.connect({ source: "google" });
-```
-
-Run the automated build and distribution smoke test locally:
-
-```sh
-npm run verify
-```
-
-The GitHub Actions pipeline runs `npm run verify` for pull requests targeting
-`main` and for pushes to `main`. It installs the locked dependencies with
-`npm ci`, then runs the unit tests, build, and distribution smoke test.
-
-To validate autocomplete in the Apps Script editor:
-
-1. Build and push the generated project with `npm run push`.
-2. Create and publish a new library version, then select that version in a
-   consumer project. The consumer must use the library identifier
-   `SheetCollection`.
-3. In the editor, type `SheetCollection.` and confirm `connect` is suggested.
-   Open its hint and confirm the configuration properties, driver behavior,
-   and usage example appear.
-4. Check the behavior of `db.` and `clients.` separately. Current testing
-   confirms the library function's JSDoc, but not member completion for objects
-   returned by library calls. Do not treat missing member suggestions as a
-   build failure; the editor does not currently resolve those custom return
-   types in this project.
-5. Run the CRUD example below with the memory driver. Local tests validate
-   runtime behavior and generated comments, not Google's editor completion.
-
 ---
 
 ## Quick Start
@@ -179,6 +139,46 @@ const clients =
 ```
 
 If the sheet does not exist, it is created automatically.
+
+### Native Google Sheets tables
+
+Collections use the existing plain-sheet behavior by default. To create a
+native Google Sheets table in the collection tab, enable the default table
+preset when obtaining the collection:
+
+```javascript
+const clients = db.collection("clients", {
+  table: true
+});
+```
+
+The default preset adds a native table with a blue header and alternating
+light rows. The table is created on the first insert, when the column headers
+are known. Existing plain cell data in the collection tab is adopted when the
+table option is enabled. The table name is derived from the collection name.
+If the tab already has a native table, configure its existing name as
+`table.name`; a differently named table is rejected rather than modified.
+
+The preset allows limited customization of the name and row colors:
+
+```javascript
+const clients = db.collection("clients", {
+  table: {
+    preset: "default",
+    name: "Clients",
+    headerColor: "#366092",
+    firstBandColor: "#FFFFFF",
+    secondBandColor: "#EAF2F8"
+  }
+});
+```
+
+Colors use `#RRGGBB`; table names must be unique in the spreadsheet. To use
+native tables, enable the Advanced Sheets service (Sheets API v4) in the Apps
+Script project. The service is included in this project's manifest. If the
+Apps Script project uses a standard Google Cloud project, enable the Google
+Sheets API there as well. The memory driver ignores table appearance options
+and remains suitable for CRUD tests.
 
 ### Collection API reference
 
@@ -304,7 +304,7 @@ const db = SheetCollection.connect({
 
 ## Memory Driver
 
-Useful for testing and local development.
+Provides an in-memory storage backend.
 
 ```javascript
 const db = SheetCollection.connect({
@@ -332,82 +332,10 @@ Logger.log(
 
 ---
 
-# Testing
+## Contributing
 
-The Memory Driver allows testing business logic without Google Sheets.
-
-```javascript
-const db = SheetCollection.connect({
-  source: "memory"
-});
-```
-
-This makes unit testing significantly easier than relying on SpreadsheetApp mocks.
-
----
-
-# Architecture
-
-```text
-┌─────────────┐
-│   SheetDB   │
-└──────┬──────┘
-       │
-       ▼
-┌─────────────┐
-│ Collection  │
-└──────┬──────┘
-       │
-       ▼
-┌─────────────┐
-│SheetAdapter │
-└──────┬──────┘
-       │
-       ▼
-┌─────────────┐
-│ SheetSource │
-└──────┬──────┘
-       │
- ┌─────┴─────┐
- ▼           ▼
-Google     Memory
-```
-
----
-
-# Roadmap
-
-### Data
-
-* Custom primary keys
-* Auto-generated IDs
-* Batch operations
-* Upsert
-* Query filters
-
-### Spreadsheet
-
-* Column types
-* Checkbox columns
-* Date formatting
-* Currency formatting
-* Dropdown validation
-* Formula helpers
-* Table presets
-
-### Platform
-
-* Driver registration API
-* Additional storage providers
-* Collection hooks
-
----
-
-# Contributing
-
-Issues, feature requests and pull requests are welcome.
-
-If you have ideas for improving the developer experience in Google Apps Script, open a discussion or create an issue.
+Issues, feature requests and pull requests are welcome. See
+[CONTRIBUTING.md](CONTRIBUTING.md) for development and contribution guidance.
 
 ---
 

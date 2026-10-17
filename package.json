@@ -18,9 +18,11 @@
     "login": "clasp login",
     "logout": "clasp logout",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
-    "test:dist": "node tests/test-consumer/index.js",
-    "verify": "npm run test && npm run build && npm run test:dist"
+    "test:dist": "node tests/consumer/index.js",
+    "typecheck:test": "tsc --noEmit --project tsconfig.test.json",
+    "verify": "npm run test:coverage && npm run typecheck:test && npm run build && npm run test:dist"
   },
   "keywords": [
     "google-apps-script",
@@ -33,10 +35,12 @@
   ],
   "devDependencies": {
     "@types/google-apps-script": "^2.0.11",
-    "@types/jest": "^30.0.0",
+    "@types/node": "^26.6.5",
+    "@vitest/coverage-v8": "^4.1.12",
     "clasp": "^1.0.0",
     "esbuild": "^0.28.1",
     "rimraf": "^6.1.3",
+    "tsc-alias": "^1.0.11",
     "typescript": "^6.0.3",
     "vitest": "^4.1.8"
   },

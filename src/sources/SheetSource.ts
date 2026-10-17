@@ -6,6 +6,8 @@ export interface SheetSource {
 
     appendRow(values: unknown[]): void;
 
+    appendRows?(values: unknown[][]): void;
+
     setValues(values: unknown[][]): void;
 
     clear(): void;

@@ -1,5 +1,5 @@
-import { RowMapper } from "../mappers/RowMapper";
-import { SheetSource } from "../sources/SheetSource";
+import { RowMapper } from "@mappers/RowMapper";
+import { SheetSource } from "@sources/SheetSource";
 
 export class SheetAdapter {
 
@@ -66,27 +66,38 @@ export class SheetAdapter {
       return;
     }
 
-    const headers = values[0].map(String);
+    const currentHeaders = values[0].map(String);
+    const headers = [...currentHeaders];
 
-    if (!headers.includes('id')) {
-      headers.push('id');
+    Object.keys(record).forEach(header => {
+      if (!headers.includes(header)) {
+        headers.push(header);
+      }
+    });
 
-      const rows = values
+    if (headers.length !== currentHeaders.length) {
+      const existingRows = values
         .slice(1)
-        .map(row => [...row, undefined]);
+        .map(row => {
+          const normalized = [...row];
+
+          while (normalized.length < headers.length) {
+            normalized.push(undefined);
+          }
+
+          return normalized;
+        });
 
       this.source.setValues([
         headers,
-        ...rows
+        ...existingRows,
+        RowMapper.toRow(record, headers)
       ]);
+
+      return;
     }
 
-    this.source.appendRow(
-      RowMapper.toRow(
-        record,
-        headers
-      )
-    );
+    this.source.appendRow(RowMapper.toRow(record, headers));
   }
 
   insertMany<T>(
@@ -166,13 +177,29 @@ export class SheetAdapter {
         return normalized;
       });
 
-    this.source.setValues([
-      headers,
-      ...updatedRows,
-      ...records.map(record =>
-        RowMapper.toRow(record, headers)
-      )
-    ]);
+    const newRows = records.map(record =>
+      RowMapper.toRow(record, headers)
+    );
+
+    if (headers.length !== currentHeaders.length) {
+      this.source.setValues([
+        headers,
+        ...updatedRows,
+        ...newRows
+      ]);
+      return;
+    }
+
+    this.appendRows(newRows);
+  }
+
+  private appendRows(rows: unknown[][]): void {
+    if (this.source.appendRows) {
+      this.source.appendRows(rows);
+      return;
+    }
+
+    rows.forEach(row => this.source.appendRow(row));
   }
 
   private mergeHeaders<T>(

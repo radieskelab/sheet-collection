@@ -1,6 +1,5 @@
-import { SheetAdapter } from "../adapters/SheetAdapter";
-import { RowMapper } from "../mappers/RowMapper";
-import { SheetSource } from "../sources/SheetSource";
+import { SheetAdapter } from "@adapters/SheetAdapter";
+import { SheetSource } from "@sources/SheetSource";
 
 /**
  * Document type accepted by insert operations. The `id` field is optional

@@ -1,5 +1,5 @@
-import { SourceType } from "../types/SourceType";
-import { ConnectionConfigProperties } from "./ConnectionConfigProperties";
+import { SourceType } from "@shared-types/SourceType";
+import { ConnectionConfigProperties } from "@interfaces/ConnectionConfigProperties";
 
 /**
  * Configuration used to connect to a Sheet Collection data source.
