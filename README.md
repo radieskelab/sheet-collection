@@ -140,6 +140,46 @@ const clients =
 
 If the sheet does not exist, it is created automatically.
 
+### Native Google Sheets tables
+
+Collections use the existing plain-sheet behavior by default. To create a
+native Google Sheets table in the collection tab, enable the default table
+preset when obtaining the collection:
+
+```javascript
+const clients = db.collection("clients", {
+  table: true
+});
+```
+
+The default preset adds a native table with a blue header and alternating
+light rows. The table is created on the first insert, when the column headers
+are known. Existing plain cell data in the collection tab is adopted when the
+table option is enabled. The table name is derived from the collection name.
+If the tab already has a native table, configure its existing name as
+`table.name`; a differently named table is rejected rather than modified.
+
+The preset allows limited customization of the name and row colors:
+
+```javascript
+const clients = db.collection("clients", {
+  table: {
+    preset: "default",
+    name: "Clients",
+    headerColor: "#366092",
+    firstBandColor: "#FFFFFF",
+    secondBandColor: "#EAF2F8"
+  }
+});
+```
+
+Colors use `#RRGGBB`; table names must be unique in the spreadsheet. To use
+native tables, enable the Advanced Sheets service (Sheets API v4) in the Apps
+Script project. The service is included in this project's manifest. If the
+Apps Script project uses a standard Google Cloud project, enable the Google
+Sheets API there as well. The memory driver ignores table appearance options
+and remains suitable for CRUD tests.
+
 ### Collection API reference
 
 The methods below are available on the object returned by `db.collection()`.

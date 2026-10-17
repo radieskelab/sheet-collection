@@ -23,6 +23,10 @@ export class MemorySheetSource implements SheetSource {
         this.values.push([...values]);
     }
 
+    appendRows(values: unknown[][]): void {
+        values.forEach(row => this.values.push([...row]));
+    }
+
     setValues(values: unknown[][]): void {
         this.values = values.map(row => [...row]);
     }

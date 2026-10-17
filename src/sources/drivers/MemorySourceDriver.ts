@@ -2,6 +2,7 @@ import { ConnectionConfigProperties } from "../../interfaces/ConnectionConfigPro
 import { MemorySheetSource } from "../MemorySheetSource";
 import { SheetSource } from "../SheetSource";
 import { SourceDriver } from "./SourceDriver";
+import { CollectionOptions } from "../../interfaces/CollectionOptions";
 
 /**
  * @preserve
@@ -55,7 +56,8 @@ export class MemorySourceDriver implements SourceDriver {
    * @returns {SheetSource} The in-memory source.
    */
   getOrCreateSheet(
-    collectionName: string
+    collectionName: string,
+    _options?: CollectionOptions
   ): SheetSource {
     let sheet = this.sheets.get(collectionName);
 

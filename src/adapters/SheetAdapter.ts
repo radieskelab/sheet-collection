@@ -177,13 +177,29 @@ export class SheetAdapter {
         return normalized;
       });
 
-    this.source.setValues([
-      headers,
-      ...updatedRows,
-      ...records.map(record =>
-        RowMapper.toRow(record, headers)
-      )
-    ]);
+    const newRows = records.map(record =>
+      RowMapper.toRow(record, headers)
+    );
+
+    if (headers.length !== currentHeaders.length) {
+      this.source.setValues([
+        headers,
+        ...updatedRows,
+        ...newRows
+      ]);
+      return;
+    }
+
+    this.appendRows(newRows);
+  }
+
+  private appendRows(rows: unknown[][]): void {
+    if (this.source.appendRows) {
+      this.source.appendRows(rows);
+      return;
+    }
+
+    rows.forEach(row => this.source.appendRow(row));
   }
 
   private mergeHeaders<T>(

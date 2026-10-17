@@ -3,6 +3,7 @@ import { SourceDriver } from "../sources/drivers/SourceDriver";
 import { SheetSource } from "../sources/SheetSource";
 import { Collection } from "./Collection";
 import { Connection } from "./Connection";
+import { CollectionOptions } from "../interfaces/CollectionOptions";
 
 /**
  * @preserve
@@ -45,9 +46,12 @@ export class SheetDB {
    * The sheet is created automatically if it does not exist. The generic
    * type describes the document shape expected by the caller; sheet contents
    * are mapped by their header names and are not runtime-validated against it.
+   * Pass `{ table: true }` to enable a native Google Sheets table using the
+   * default visual preset, or pass table options to customize its name/colors.
    *
    * @typeParam T Type of stored documents.
    * @param {string} name Name of the collection and spreadsheet tab.
+   * @param {Object} [options] Optional native table settings for this collection.
    * @return {Collection} Collection for the requested sheet.
    *
    * @example
@@ -55,9 +59,10 @@ export class SheetDB {
    * users.insert({ name: "Ada Lovelace" });
    */
   collection<T>(
-    name: string
+    name: string,
+    options?: CollectionOptions
   ): Collection<T> {
-    const source = this.getOrCreateSheet(name);
+    const source = this.driver.getOrCreateSheet(name, options);
 
     return new Collection<T>(
       source

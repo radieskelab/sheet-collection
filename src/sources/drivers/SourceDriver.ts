@@ -1,4 +1,5 @@
 import { SheetSource } from "../SheetSource";
+import { CollectionOptions } from "../../interfaces/CollectionOptions";
 
 /**
  * Contract implemented by storage drivers used by SheetDB.
@@ -22,6 +23,6 @@ export interface SourceDriver  {
    * @param name Collection or sheet name.
    * @returns The collection source.
    */
-  getOrCreateSheet(name: string): SheetSource;
+  getOrCreateSheet(name: string, options?: CollectionOptions): SheetSource;
 
 }

@@ -1,5 +1,4 @@
 import { SheetAdapter } from "../adapters/SheetAdapter";
-import { RowMapper } from "../mappers/RowMapper";
 import { SheetSource } from "../sources/SheetSource";
 
 /**

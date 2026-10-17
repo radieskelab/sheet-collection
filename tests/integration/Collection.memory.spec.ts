@@ -26,6 +26,16 @@ describe('Collection', () => {
 
   });
 
+  it('should keep memory collections usable when the native table option is enabled', () => {
+    const users = createMemoryDatabase().collection<User>('users', {
+      table: true
+    });
+
+    users.insert({ id: '1', name: 'Eduardo' });
+
+    expect(users.findAll()).toEqual([{ id: '1', name: 'Eduardo' }]);
+  });
+
   it('should generate id automatically when missing', () => {
     interface NumericUser {
       id: number;

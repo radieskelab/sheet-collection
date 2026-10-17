@@ -71,6 +71,11 @@ they validate our calls and handling, not behavior of Google's live services.
 Run `npm test` for a fast test run, `npm run typecheck:test` for test-source
 type checking, or `npm run test:coverage` to inspect the coverage baseline.
 
+Native table support uses the Advanced Sheets service configured in
+`appsscript.json`. Mock tests cover request construction and collection
+behavior; before publishing changes to that integration, validate table
+creation and CRUD against a disposable real spreadsheet.
+
 ## Architecture
 
 ```text
@@ -116,7 +121,6 @@ Google     Memory
 * Currency formatting
 * Dropdown validation
 * Formula helpers
-* Table presets
 
 ### Platform
 

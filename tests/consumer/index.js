@@ -13,6 +13,9 @@ const collectionTypesPath = resolve(projectRoot, 'dist/core/Collection.d.ts');
 
 const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
 assert.equal(manifest.runtimeVersion, 'V8');
+assert.deepEqual(manifest.dependencies.enabledAdvancedServices, [
+  { userSymbol: 'Sheets', serviceId: 'sheets', version: 'v4' }
+]);
 
 const bundle = readFileSync(bundlePath, 'utf8');
 assert.doesNotMatch(bundle, /^\s*(?:import|export)\s/m);

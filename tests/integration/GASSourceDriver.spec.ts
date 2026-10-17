@@ -4,6 +4,7 @@ import { GASSourceDriver } from '../../src/sources/drivers/GASSourceDriver';
 function createAppsScriptMocks() {
   const sheet = {
     getName: vi.fn(() => 'users'),
+    getSheetId: vi.fn(() => 42),
     getDataRange: vi.fn(() => ({ getValues: vi.fn(() => []) })),
     appendRow: vi.fn(),
     clear: vi.fn(),
@@ -15,6 +16,8 @@ function createAppsScriptMocks() {
     (name: string): typeof sheet | null => name === 'users' ? sheet : null
   );
   const spreadsheet = {
+    getId: vi.fn(() => 'spreadsheet-id'),
+    getSpreadsheetTimeZone: vi.fn(() => 'UTC'),
     getSheetByName,
     insertSheet: vi.fn(() => sheet)
   };
@@ -53,6 +56,66 @@ describe('GASSourceDriver', () => {
     expect(spreadsheetApp.getActiveSpreadsheet).not.toHaveBeenCalled();
     expect(driver.getOrCreateSheet('users').getName()).toBe('users');
     expect(spreadsheet.insertSheet).not.toHaveBeenCalled();
+  });
+
+  it('should pass native table options to the sheet source', () => {
+    const { spreadsheetApp } = createAppsScriptMocks();
+    const range = { setValues: vi.fn(), clearContent: vi.fn(), getValues: vi.fn(() => []) };
+    const sheet = {
+      getName: vi.fn(() => 'users'),
+      getSheetId: vi.fn(() => 42),
+      getDataRange: vi.fn(() => ({ getValues: vi.fn(() => []) })),
+      appendRow: vi.fn(),
+      clear: vi.fn(),
+      getLastRow: vi.fn(() => 0),
+      getLastColumn: vi.fn(() => 0),
+      getRange: vi.fn(() => range)
+    };
+    vi.stubGlobal('SpreadsheetApp', {
+      ...spreadsheetApp,
+      getActiveSpreadsheet: vi.fn(() => ({
+        ...spreadsheetApp.getActiveSpreadsheet(),
+        getSheetByName: vi.fn(() => sheet)
+      }))
+    });
+    const batchUpdate = vi.fn(() => ({
+      replies: [{
+        addTable: {
+          table: {
+            tableId: 'native-table',
+            name: 'SheetCollection_users',
+            range: {
+              sheetId: 42,
+              startRowIndex: 0,
+              endRowIndex: 2,
+              startColumnIndex: 0,
+              endColumnIndex: 1
+            }
+          }
+        }
+      }]
+    }));
+    vi.stubGlobal('Sheets', {
+      Spreadsheets: {
+        get: vi.fn(() => ({ sheets: [{ properties: { sheetId: 42 }, tables: [] }] })),
+        batchUpdate
+      }
+    });
+
+    const driver = new GASSourceDriver();
+    const source = driver.getOrCreateSheet('users', { table: true });
+    source.setValues([['id'], ['1']]);
+
+    expect(batchUpdate).toHaveBeenCalledWith({
+      requests: [{
+        addTable: {
+          table: expect.objectContaining({
+            name: 'SheetCollection_users',
+            columnProperties: [{ columnName: 'id', columnIndex: 0 }]
+          })
+        }
+      }]
+    }, 'spreadsheet-id');
   });
 
   it('should create a sheet when it does not already exist', () => {

@@ -2,6 +2,7 @@ import { ConnectionConfigProperties } from "../../interfaces/ConnectionConfigPro
 import { GASSheetSource } from "../GASSheetSource";
 import { SheetSource } from "../SheetSource";
 import { SourceDriver } from "./SourceDriver";
+import { CollectionOptions } from "../../interfaces/CollectionOptions";
 
 /**
  * @preserve
@@ -15,6 +16,7 @@ import { SourceDriver } from "./SourceDriver";
 export class GASSourceDriver implements SourceDriver {
 
   private spreadsheet: GoogleAppsScript.Spreadsheet.Spreadsheet;
+  private spreadsheetId: string;
 
   /**
    * @preserve
@@ -28,6 +30,7 @@ export class GASSourceDriver implements SourceDriver {
   constructor(properties?: ConnectionConfigProperties) {
     if (!properties) {
       this.spreadsheet = this.getActiveSpreadsheet(); 
+      this.spreadsheetId = this.spreadsheet.getId();
       return;
     }
 
@@ -38,6 +41,7 @@ export class GASSourceDriver implements SourceDriver {
     if (!spreadsheet) throw new Error("Planilha não foi encontrada.");
 
     this.spreadsheet = spreadsheet;
+    this.spreadsheetId = spreadsheet.getId();
   }
 
   /**
@@ -70,16 +74,23 @@ export class GASSourceDriver implements SourceDriver {
    * @returns {SheetSource} The source wrapping the tab.
    */
   getOrCreateSheet(
-    collectionName: string
+    collectionName: string,
+    options?: CollectionOptions
   ): SheetSource {
     const existing = this.spreadsheet.getSheetByName(
         collectionName
     );
 
-    if (existing) return new GASSheetSource(existing);
+    const sheet = existing ?? this.spreadsheet.insertSheet(collectionName);
 
     return new GASSheetSource(
-      this.spreadsheet.insertSheet(collectionName)
+      sheet,
+      options?.table ? {
+        spreadsheetId: this.spreadsheetId,
+        collectionName,
+        options: options.table === true ? {} : options.table,
+        timeZone: this.spreadsheet.getSpreadsheetTimeZone()
+      } : undefined
     );
   }
 
