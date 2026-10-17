@@ -104,6 +104,40 @@ function testLibrary() {
 }
 ```
 
+### Build and verify autocomplete
+
+The build outputs the bundled JavaScript, Apps Script manifest, generated
+TypeScript declarations, and a documented `Api.gs` facade. The facade exposes
+`connect()` as a top-level Apps Script library function so consumers can call
+it through the library identifier:
+
+```javascript
+const db = SheetCollection.connect({ source: "google" });
+```
+
+Run the automated build and distribution smoke test locally:
+
+```sh
+npm run verify
+```
+
+To validate autocomplete in the Apps Script editor:
+
+1. Build and push the generated project with `npm run push`.
+2. Create and publish a new library version, then select that version in a
+   consumer project. The consumer must use the library identifier
+   `SheetCollection`.
+3. In the editor, type `SheetCollection.` and confirm `connect` is suggested.
+   Open its hint and confirm the description and `config` parameter appear.
+4. Type `const db = SheetCollection.connect({ source: "memory" });`, then
+   `db.` and confirm `collection` is suggested.
+5. Type `const users = db.collection("users");`, then `users.` and confirm
+   `findAll`, `findById`, `insert`, `insertMany`, `update`, and `delete` are
+   suggested with their documented hints.
+6. Run a smoke test with the memory driver. Editor autocomplete itself must be
+   checked in the Apps Script editor; the local build and Node.js tests cannot
+   validate Google's completion index or type inference.
+
 ---
 
 ## Quick Start

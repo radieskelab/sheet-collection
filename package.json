@@ -11,7 +11,7 @@
   "scripts": {
     "clean": "rimraf dist",
     "build": "npm run clean && node build.mjs",
-    "watch": "esbuild src/index.ts --bundle --outfile=dist/SheetCollection.js --format=esm --global-name=SheetCollection --target=es2019 --watch",
+    "watch": "npm run build && esbuild src/index.ts --bundle --outfile=dist/SheetCollection.js --format=iife --target=es2019 --watch",
     "push": "npm run verify && clasp push",
     "pull": "clasp pull",
     "open": "clasp open",
