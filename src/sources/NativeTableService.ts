@@ -36,11 +36,6 @@ interface AddTableResponse {
 
 interface NativeTableRequest {
   addTable?: { table: Record<string, unknown> };
-  appendCells?: {
-    tableId: string;
-    rows: Array<{ values: Array<{ userEnteredValue?: Record<string, unknown> }> }>;
-    fields: string;
-  };
   updateTable?: {
     table: Record<string, unknown>;
     fields: string;
@@ -88,7 +83,6 @@ export class NativeTableService {
     private readonly sheetId: number,
     collectionName: string,
     options: TableOptions,
-    private readonly timeZone = 'UTC',
     service?: NativeSheetsService
   ) {
     if (options.preset !== undefined && options.preset !== 'default') {
@@ -194,31 +188,6 @@ export class NativeTableService {
     return headers;
   }
 
-  appendRows(table: NativeTableState, rows: unknown[][]): void {
-    if (rows.length === 0) {
-      return;
-    }
-
-    this.service.Spreadsheets.batchUpdate({
-      requests: [{
-        appendCells: {
-          tableId: table.tableId,
-          rows: rows.map(row => ({
-            values: row.map(value => this.toCellData(value))
-          })),
-          fields: 'userEnteredValue,userEnteredFormat.numberFormat'
-        }
-      }]
-    }, this.spreadsheetId);
-    this.table = {
-      ...table,
-      range: {
-        ...table.range,
-        endRowIndex: table.range.endRowIndex + rows.length
-      }
-    };
-  }
-
   resizeTable(table: NativeTableState, values: unknown[][]): void {
     const headers = values[0]?.map(String) ?? [];
     this.validateHeaders(headers);
@@ -245,6 +214,23 @@ export class NativeTableService {
     }, this.spreadsheetId);
 
     this.table = { ...table, range };
+  }
+
+  resizeTableRows(table: NativeTableState, rowCount: number): NativeTableState {
+    const range: GridRange = {
+      ...table.range,
+      endRowIndex: table.range.startRowIndex + rowCount
+    };
+    this.service.Spreadsheets.batchUpdate({
+      requests: [{
+        updateTable: {
+          table: { tableId: table.tableId, range },
+          fields: 'range'
+        }
+      }]
+    }, this.spreadsheetId);
+    this.table = { ...table, range };
+    return this.table;
   }
 
   deleteTable(table: NativeTableState): void {
@@ -278,51 +264,6 @@ export class NativeTableService {
         blue: parseInt(normalized.slice(4, 6), 16) / 255
       }
     };
-  }
-
-  private toExtendedValue(value: unknown): Record<string, unknown> | undefined {
-    if (value === undefined || value === null) {
-      return undefined;
-    }
-    if (value instanceof Date) {
-      const localDate = this.timeZone === 'UTC'
-        ? value.toISOString()
-        : Utilities.formatDate(value, this.timeZone, "yyyy-MM-dd'T'HH:mm:ss.SSS");
-      const utcDate = Date.parse(`${localDate.replace(/Z$/, '')}Z`);
-      return { numberValue: utcDate / 86400000 + 25569 };
-    }
-
-    if (typeof value === 'string') {
-      return value.startsWith('=')
-        ? { formulaValue: value }
-        : { stringValue: value };
-    }
-    if (typeof value === 'number') {
-      return { numberValue: value };
-    }
-    if (typeof value === 'boolean') {
-      return { boolValue: value };
-    }
-
-    throw new Error(
-      'Valores de tabela devem ser string, number, boolean, Date, null ou undefined.'
-    );
-  }
-
-  private toCellData(value: unknown): {
-    userEnteredValue?: Record<string, unknown>;
-    userEnteredFormat?: Record<string, unknown>;
-  } {
-    const userEnteredValue = this.toExtendedValue(value);
-    if (value instanceof Date) {
-      return {
-        userEnteredValue,
-        userEnteredFormat: {
-          numberFormat: { type: 'DATE_TIME' }
-        }
-      };
-    }
-    return { userEnteredValue };
   }
 
   private createDefaultName(collectionName: string): string {

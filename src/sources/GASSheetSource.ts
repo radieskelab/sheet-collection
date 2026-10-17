@@ -6,7 +6,6 @@ interface NativeTableConfiguration {
     spreadsheetId: string;
     collectionName: string;
     options: TableOptions;
-    timeZone?: string;
 }
 
 /**
@@ -25,8 +24,7 @@ export class GASSheetSource implements SheetSource {
                 table.spreadsheetId,
                 sheet.getSheetId(),
                 table.collectionName,
-                table.options,
-                table.timeZone
+                table.options
             )
             : undefined;
     }
@@ -47,12 +45,16 @@ export class GASSheetSource implements SheetSource {
         if (table) {
             const rowCount = table.range.endRowIndex - table.range.startRowIndex;
             const columnCount = table.range.endColumnIndex - table.range.startColumnIndex;
-            return this.sheet.getRange(
+            const values = this.sheet.getRange(
                 table.range.startRowIndex + 1,
                 table.range.startColumnIndex + 1,
                 rowCount,
                 columnCount
             ).getValues();
+            while (values.length > 1 && this.isEmptyRow(values[values.length - 1])) {
+                values.pop();
+            }
+            return values;
         }
 
         return this.sheet
@@ -72,7 +74,40 @@ export class GASSheetSource implements SheetSource {
         const table = this.getNativeTable(true);
 
         if (table && this.tableService) {
-            this.tableService.appendRows(table, values);
+            const rowCount = table.range.endRowIndex - table.range.startRowIndex;
+            const columnCount = table.range.endColumnIndex - table.range.startColumnIndex;
+            const tableValues = this.sheet.getRange(
+                table.range.startRowIndex + 1,
+                table.range.startColumnIndex + 1,
+                rowCount,
+                columnCount
+            ).getValues();
+            let lastNonEmptyRow = 0;
+
+            tableValues.forEach((row, index) => {
+                if (!this.isEmptyRow(row)) {
+                    lastNonEmptyRow = index;
+                }
+            });
+
+            const insertionOffset = lastNonEmptyRow + 1;
+            const insertionRow = table.range.startRowIndex + insertionOffset;
+            const requiredEndRow = insertionRow + values.length;
+            const currentEndRow = table.range.endRowIndex;
+
+            if (requiredEndRow > currentEndRow) {
+                this.tableService.resizeTableRows(
+                    table,
+                    requiredEndRow - table.range.startRowIndex
+                );
+            }
+
+            this.sheet.getRange(
+                insertionRow + 1,
+                table.range.startColumnIndex + 1,
+                values.length,
+                values[0].length
+            ).setValues(values);
             return;
         }
 
@@ -218,6 +253,10 @@ export class GASSheetSource implements SheetSource {
 
         const existingValues = this.sheet.getDataRange().getValues();
         return this.tableService.createTable(existingValues);
+    }
+
+    private isEmptyRow(row: unknown[]): boolean {
+        return row.every(value => value === '' || value === null || value === undefined);
     }
 
 }

@@ -6,7 +6,7 @@ function createSheetMock() {
   const range = {
     setValues: vi.fn(),
     clearContent: vi.fn(),
-    getValues: vi.fn(() => [['id', 'name'], ['1', 'Eduardo']])
+    getValues: vi.fn((): unknown[][] => [['id', 'name'], ['1', 'Eduardo']])
   };
 
   const sheet = {
@@ -235,8 +235,9 @@ describe('GASSheetSource', () => {
         batchUpdate
       }
     });
+    const { sheet, range } = createSheetMock();
     const source = new GASSheetSource(
-      createSheetMock().sheet as unknown as GoogleAppsScript.Spreadsheet.Sheet,
+      sheet as unknown as GoogleAppsScript.Spreadsheet.Sheet,
       {
         spreadsheetId: 'spreadsheet-id',
         collectionName: 'clients',
@@ -248,18 +249,110 @@ describe('GASSheetSource', () => {
 
     expect(batchUpdate).toHaveBeenCalledWith({
       requests: [{
-        appendCells: {
-          tableId: 'existing-table',
-          rows: [{
-            values: [
-              { userEnteredValue: { numberValue: 2 } },
-              { userEnteredValue: { stringValue: 'Grace' } }
-            ]
-          }],
-          fields: 'userEnteredValue,userEnteredFormat.numberFormat'
+        updateTable: {
+          table: {
+            tableId: 'existing-table',
+            range: {
+              sheetId: 42,
+              startRowIndex: 0,
+              endRowIndex: 3,
+              startColumnIndex: 0,
+              endColumnIndex: 2
+            }
+          },
+          fields: 'range'
         }
       }]
     }, 'spreadsheet-id');
+    expect(sheet.getRange).toHaveBeenCalledWith(3, 1, 1, 2);
+    expect(range.setValues).toHaveBeenCalledWith([[2, 'Grace']]);
+    expect(source.getValues()).toHaveLength(2);
+  });
+
+  it('should omit trailing empty rows when reading a native table', () => {
+    const table = {
+      tableId: 'existing-table',
+      name: 'ClientsTable',
+      range: {
+        sheetId: 42,
+        startRowIndex: 0,
+        endRowIndex: 4,
+        startColumnIndex: 0,
+        endColumnIndex: 2
+      }
+    };
+    vi.stubGlobal('Sheets', {
+      Spreadsheets: {
+        get: vi.fn(() => ({
+          sheets: [{ properties: { sheetId: 42 }, tables: [table] }]
+        })),
+        batchUpdate: vi.fn()
+      }
+    });
+
+    const { sheet, range } = createSheetMock();
+    range.getValues.mockReturnValue([
+      ['id', 'name'],
+      [1, 'Ada'],
+      ['', ''],
+      ['', '']
+    ]);
+    const source = new GASSheetSource(
+      sheet as unknown as GoogleAppsScript.Spreadsheet.Sheet,
+      {
+        spreadsheetId: 'spreadsheet-id',
+        collectionName: 'clients',
+        options: { name: 'ClientsTable' }
+      }
+    );
+
+    expect(source.getValues()).toEqual([
+      ['id', 'name'],
+      [1, 'Ada']
+    ]);
+  });
+
+  it('should fill a trailing empty row already inside a native table', () => {
+    const table = {
+      tableId: 'existing-table',
+      name: 'ClientsTable',
+      range: {
+        sheetId: 42,
+        startRowIndex: 0,
+        endRowIndex: 3,
+        startColumnIndex: 0,
+        endColumnIndex: 2
+      }
+    };
+    const batchUpdate = vi.fn();
+    vi.stubGlobal('Sheets', {
+      Spreadsheets: {
+        get: vi.fn(() => ({
+          sheets: [{ properties: { sheetId: 42 }, tables: [table] }]
+        })),
+        batchUpdate
+      }
+    });
+    const { sheet, range } = createSheetMock();
+    range.getValues.mockReturnValue([
+      ['id', 'name'],
+      [1, 'Ada'],
+      ['', '']
+    ]);
+    const source = new GASSheetSource(
+      sheet as unknown as GoogleAppsScript.Spreadsheet.Sheet,
+      {
+        spreadsheetId: 'spreadsheet-id',
+        collectionName: 'clients',
+        options: { name: 'ClientsTable' }
+      }
+    );
+
+    source.appendRows([[2, 'Grace']]);
+
+    expect(batchUpdate).not.toHaveBeenCalled();
+    expect(sheet.getRange).toHaveBeenCalledWith(3, 1, 1, 2);
+    expect(range.setValues).toHaveBeenCalledWith([[2, 'Grace']]);
   });
 
   it('should resize a table when rows are replaced and clear deleted table cells', () => {

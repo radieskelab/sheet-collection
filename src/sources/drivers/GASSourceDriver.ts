@@ -88,8 +88,7 @@ export class GASSourceDriver implements SourceDriver {
       options?.table ? {
         spreadsheetId: this.spreadsheetId,
         collectionName,
-        options: options.table === true ? {} : options.table,
-        timeZone: this.spreadsheet.getSpreadsheetTimeZone()
+        options: options.table === true ? {} : options.table
       } : undefined
     );
   }

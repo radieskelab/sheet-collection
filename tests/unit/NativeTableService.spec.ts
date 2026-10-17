@@ -104,62 +104,41 @@ describe('NativeTableService', () => {
     });
   });
 
-  it('should append rows by native table ID and preserve value types', () => {
+  it('should expand a table range when rows must be added beyond it', () => {
     const { batchUpdate } = createServiceMock();
     const service = new NativeTableService('spreadsheet-id', 42, 'clients', {});
-    const table = service.createTable([['id', 'formula', 'active', 'date']]);
-    const date = new Date('2025-01-01T00:00:00.000Z');
-
-    service.appendRows(table, [[1, '=1+1', true, date]]);
-
-    expect(batchUpdate.mock.calls[1][0].requests[0].appendCells).toEqual({
+    const table = {
       tableId: 'native-table-id',
-      rows: [{
-        values: [
-          { userEnteredValue: { numberValue: 1 } },
-          { userEnteredValue: { formulaValue: '=1+1' } },
-          { userEnteredValue: { boolValue: true } },
-          {
-            userEnteredValue: { numberValue: date.getTime() / 86400000 + 25569 },
-            userEnteredFormat: { numberFormat: { type: 'DATE_TIME' } }
-          }
-        ]
-      }],
-      fields: 'userEnteredValue,userEnteredFormat.numberFormat'
-    });
-  });
+      name: 'Clients',
+      range: {
+        sheetId: 42,
+        startRowIndex: 0,
+        endRowIndex: 3,
+        startColumnIndex: 0,
+        endColumnIndex: 2
+      }
+    };
 
-  it('should convert Date values using the spreadsheet time zone', () => {
-    const { batchUpdate } = createServiceMock();
-    const date = new Date('2025-01-01T00:00:00.000Z');
-    const formatDate = vi.fn(() => '2024-12-31T21:00:00.000');
-    vi.stubGlobal('Utilities', { formatDate });
-    const service = new NativeTableService(
-      'spreadsheet-id',
-      42,
-      'clients',
-      {},
-      'America/Sao_Paulo'
-    );
-    const table = service.createTable([['createdAt']]);
+    const expanded = service.resizeTableRows(table, 5);
 
-    service.appendRows(table, [[date]]);
-
-    expect(formatDate).toHaveBeenCalledWith(
-      date,
-      'America/Sao_Paulo',
-      "yyyy-MM-dd'T'HH:mm:ss.SSS"
-    );
-    expect(batchUpdate.mock.calls[1][0].requests[0].appendCells).toMatchObject({
-      rows: [{
-        values: [{
-          userEnteredValue: {
-            numberValue: Date.parse('2024-12-31T21:00:00.000Z') / 86400000 + 25569
+    expect(batchUpdate).toHaveBeenCalledWith({
+      requests: [{
+        updateTable: {
+          table: {
+            tableId: 'native-table-id',
+            range: {
+              sheetId: 42,
+              startRowIndex: 0,
+              endRowIndex: 5,
+              startColumnIndex: 0,
+              endColumnIndex: 2
+            }
           },
-          userEnteredFormat: { numberFormat: { type: 'DATE_TIME' } }
-        }]
+          fields: 'range'
+        }
       }]
-    });
+    }, 'spreadsheet-id');
+    expect(expanded.range.endRowIndex).toBe(5);
   });
 
   it('should reuse an existing table with the configured name', () => {
