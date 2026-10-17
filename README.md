@@ -108,8 +108,10 @@ function testLibrary() {
 
 The build outputs the bundled JavaScript, Apps Script manifest, generated
 TypeScript declarations, and a documented `Api.gs` facade. The facade exposes
-`connect()` as a top-level Apps Script library function so consumers can call
-it through the library identifier:
+`connect()` as a top-level Apps Script library function. That is the API point
+for which the editor shows JSDoc. The editor may not provide member completion
+for `db` and `clients`, even though the returned objects have those methods at
+runtime; the method reference below documents their signatures and behavior.
 
 ```javascript
 const db = SheetCollection.connect({ source: "google" });
@@ -128,15 +130,15 @@ To validate autocomplete in the Apps Script editor:
    consumer project. The consumer must use the library identifier
    `SheetCollection`.
 3. In the editor, type `SheetCollection.` and confirm `connect` is suggested.
-   Open its hint and confirm the description and `config` parameter appear.
-4. Type `const db = SheetCollection.connect({ source: "memory" });`, then
-   `db.` and confirm `collection` is suggested.
-5. Type `const users = db.collection("users");`, then `users.` and confirm
-   `findAll`, `findById`, `insert`, `insertMany`, `update`, and `delete` are
-   suggested with their documented hints.
-6. Run a smoke test with the memory driver. Editor autocomplete itself must be
-   checked in the Apps Script editor; the local build and Node.js tests cannot
-   validate Google's completion index or type inference.
+   Open its hint and confirm the configuration properties, driver behavior,
+   and usage example appear.
+4. Check the behavior of `db.` and `clients.` separately. Current testing
+   confirms the library function's JSDoc, but not member completion for objects
+   returned by library calls. Do not treat missing member suggestions as a
+   build failure; the editor does not currently resolve those custom return
+   types in this project.
+5. Run the CRUD example below with the memory driver. Local tests validate
+   runtime behavior and generated comments, not Google's editor completion.
 
 ---
 
@@ -173,6 +175,41 @@ const clients =
 ```
 
 If the sheet does not exist, it is created automatically.
+
+### Collection API reference
+
+The methods below are available on the object returned by `db.collection()`.
+They are documented in the TypeScript source and generated declarations; the
+Apps Script editor may not show member autocomplete or inline JSDoc for them
+when the object comes from the library.
+
+| Method | Parameters | Return | Behavior |
+| --- | --- | --- | --- |
+| `findAll()` | None | `T[]` | Returns all data rows as documents; returns `[]` when empty. |
+| `findById(id)` | `id: unknown` | `T \| null` | Finds the first matching `id`, or returns `null`. Numeric and string forms of an ID match. |
+| `insert(document)` | A document object; `id` may be omitted | `void` | Inserts one row, creating headers if needed. Generates a numeric ID when omitted; duplicate IDs throw. |
+| `insertMany(documents)` | Array of document objects | `void` | Inserts multiple rows and generates missing numeric IDs. Duplicate IDs throw. |
+| `update(id, document)` | ID and partial document | `boolean` | Updates supplied fields; `false` if no matching document exists. |
+| `delete(id)` | ID | `boolean` | Deletes the matching document; `false` if none exists. |
+
+For Google Sheets, fields should contain values supported by `Range.setValues`
+(strings, numbers, booleans, or dates). Documents are mapped by header name;
+the generic document type is not runtime schema validation.
+
+```javascript
+const db = SheetCollection.connect({ source: "memory" });
+const clients = db.collection("clients");
+
+clients.insertMany([
+  { name: "Ada Lovelace", email: "ada@example.com" },
+  { name: "Grace Hopper", email: "grace@example.com" }
+]);
+
+const allClients = clients.findAll();
+const client = clients.findById(1);
+const updated = clients.update(1, { name: "Ada" });
+const deleted = clients.delete(2);
+```
 
 ---
 

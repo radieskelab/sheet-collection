@@ -48,7 +48,7 @@ export class SheetDB {
    *
    * @typeParam T Type of stored documents.
    * @param {string} name Name of the collection and spreadsheet tab.
-   * @returns {Collection} Collection for the requested sheet.
+   * @return {Collection} Collection for the requested sheet.
    *
    * @example
    * const users = db.collection("users");

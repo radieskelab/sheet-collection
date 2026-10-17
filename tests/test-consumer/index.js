@@ -30,12 +30,16 @@ assert.match(collectionTypes, /findById\(id: unknown\): T \| null/);
 assert.match(collectionTypes, /insertMany\(documents: InsertDocument<T>\[\]\): void/);
 
 const apiFacade = readFileSync(apiPath, 'utf8');
-assert.match(apiFacade, /@param \{"google"\|"memory"\} config\.source/);
 assert.match(apiFacade, /@return \{SheetDB\}/);
+assert.match(apiFacade, /@param \{Object\} config/);
+assert.match(apiFacade, /@param \{"google"\|"memory"\} config\.source/);
+assert.match(apiFacade, /@param \{string\} \[config\.properties\.spreadsheetId\]/);
+assert.match(apiFacade, /clients\.insert\(\{ name: "Ada Lovelace" \}\)/);
 assert.match(apiFacade, /function connect\(config\)/);
 runInThisContext(apiFacade, { filename: apiPath });
 
 assert.equal(typeof globalThis.SheetDB, 'function');
+assert.doesNotMatch(bundle, /globalScope\.Collection\s*=/);
 assert.equal(typeof globalThis.connect, 'function');
 
 const db = globalThis.connect({
