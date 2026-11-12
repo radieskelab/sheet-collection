@@ -21,6 +21,7 @@
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
     "test:dist": "node tests/consumer/index.js",
+    "example:memory": "npm run build && node examples/memory-driver/index.mjs",
     "typecheck:test": "tsc --noEmit --project tsconfig.test.json",
     "verify": "npm run test:coverage && npm run typecheck:test && npm run build && npm run test:dist"
   },
