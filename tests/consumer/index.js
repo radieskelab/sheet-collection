@@ -1,6 +1,6 @@
 import '../../dist/SheetCollection.js';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { runInThisContext } from 'node:vm';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
@@ -10,6 +10,9 @@ const bundlePath = resolve(projectRoot, 'dist/SheetCollection.js');
 const apiPath = resolve(projectRoot, 'dist/Api.gs');
 const manifestPath = resolve(projectRoot, 'dist/appsscript.json');
 const collectionTypesPath = resolve(projectRoot, 'dist/core/Collection.d.ts');
+
+assert.equal(existsSync(resolve(projectRoot, 'dist/tests')), false);
+assert.equal(existsSync(resolve(projectRoot, 'dist/examples')), false);
 
 const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
 assert.equal(manifest.runtimeVersion, 'V8');

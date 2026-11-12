@@ -332,6 +332,14 @@ Logger.log(
 
 ---
 
+## Usage examples
+
+See [examples/README.md](examples/README.md) for a complete Google Apps Script
+CRUD example, the expected spreadsheet structure, and a runnable local example
+using the Memory Driver.
+
+---
+
 ## Contributing
 
 Issues, feature requests and pull requests are welcome. See
