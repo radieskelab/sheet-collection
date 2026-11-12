@@ -1,129 +1,73 @@
 # Contributing
 
-Issues, feature requests and pull requests are welcome. If you have ideas for
-improving the developer experience in Google Apps Script, open a discussion or
-create an issue.
+Issues and pull requests are welcome. This guide describes how to report a
+problem, propose a change, and run the project's development checks locally.
 
-## Development
+## Issues
 
-Install the project dependencies:
+Before opening an issue, search existing open and closed issues to avoid
+duplicates. Use an issue to report a reproducible bug, suggest an improvement,
+or ask a focused question about the project.
+
+When reporting a bug, include:
+
+* What you expected to happen and what actually happened.
+* Minimal steps or code to reproduce it, with sensitive data removed.
+* The relevant environment details, such as Node.js version and whether the
+  problem occurs in Google Apps Script, the Memory Driver, or both.
+* Any useful error message or test output.
+
+For feature requests, describe the use case and the behavior you would expect.
+For larger or behavior-changing proposals, open an issue first so the approach
+can be discussed before implementation.
+
+## Development workflow
+
+1. Fork the repository and clone your fork.
+2. Create a branch for your change.
+3. Install dependencies:
+
+   ```sh
+   npm ci
+   ```
+
+4. Make a focused change. Add or update tests for behavior changes and update
+   the documentation or examples when relevant.
+5. Run the checks before submitting:
+
+   ```sh
+   npm run verify
+   ```
+
+   This runs the test suite with coverage, type-checks the test sources, builds
+   the library, and runs a smoke test against the generated distribution.
+6. Open a pull request against `main`. Summarize the change, link the related
+   issue (for example, `Closes #123`), and include the verification you ran.
+   If the change is not yet complete, mark the pull request as a draft.
+
+Keep pull requests scoped to one issue or closely related change where
+possible. Do not include generated `dist/` output; the build recreates it.
+
+## Useful commands
+
+Run the test suite without coverage:
 
 ```sh
-npm ci
+npm test
 ```
 
-Run the tests with coverage, type-check the test sources, build, and run the
-distribution smoke test:
+Type-check the tests:
 
 ```sh
-npm run verify
+npm run typecheck:test
 ```
 
-The `verify` script runs the unit and in-memory integration tests with a V8
-coverage report, type-checks the TypeScript test sources, builds the library,
-and checks the generated distribution with a consumer smoke test. Coverage
-thresholds start below the current baseline (80% statements and lines, 70%
-branches, and 90% functions) to prevent substantial regressions while leaving
-room to expand coverage. The GitHub Actions pipeline runs `npm run verify` for
-pull requests targeting `main` and for pushes to `main`.
+Run the local Memory Driver CRUD example:
 
-The build outputs the bundled JavaScript, Apps Script manifest, generated
-TypeScript declarations, and a documented `Api.gs` facade.
-
-### Apps Script autocomplete
-
-The `Api.gs` facade exposes `connect()` as a top-level Apps Script library
-function. That is the API point for which the editor shows JSDoc. The editor
-may not provide member completion for `db` and `clients`, even though the
-returned objects have those methods at runtime.
-
-To validate autocomplete in the Apps Script editor:
-
-1. Build and push the generated project with `npm run push`.
-2. Create and publish a new library version, then select that version in a
-   consumer project. The consumer must use the library identifier
-   `SheetCollection`.
-3. In the editor, type `SheetCollection.` and confirm `connect` is suggested.
-   Open its hint and confirm the configuration properties, driver behavior,
-   and usage example appear.
-4. Check the behavior of `db.` and `clients.` separately. Current testing
-   confirms the library function's JSDoc, but not member completion for objects
-   returned by library calls. Do not treat missing member suggestions as a
-   build failure; the editor does not currently resolve those custom return
-   types in this project.
-5. Run a CRUD example with the memory driver. Local tests validate runtime
-   behavior and generated comments, not Google's editor completion.
-
-## Testing
-
-The Memory Driver allows testing business logic without Google Sheets, without
-relying on `SpreadsheetApp` mocks:
-
-```javascript
-const db = SheetCollection.connect({
-  source: "memory"
-});
+```sh
+npm run example:memory
 ```
 
-Tests are grouped by intent under `tests/unit`, `tests/integration`, and
-`tests/consumer`. The GAS adapter and driver tests use narrow Apps Script mocks;
-they validate our calls and handling, not behavior of Google's live services.
-Run `npm test` for a fast test run, `npm run typecheck:test` for test-source
-type checking, or `npm run test:coverage` to inspect the coverage baseline.
-
-Native table support uses the Advanced Sheets service configured in
-`appsscript.json`. Mock tests cover request construction and collection
-behavior; before publishing changes to that integration, validate table
-creation and CRUD against a disposable real spreadsheet.
-
-## Architecture
-
-```text
-┌─────────────┐
-│   SheetDB   │
-└──────┬──────┘
-       │
-       ▼
-┌─────────────┐
-│ Collection  │
-└──────┬──────┘
-       │
-       ▼
-┌─────────────┐
-│SheetAdapter │
-└──────┬──────┘
-       │
-       ▼
-┌─────────────┐
-│ SheetSource │
-└──────┬──────┘
-       │
- ┌─────┴─────┐
- ▼           ▼
-Google     Memory
-```
-
-## Roadmap
-
-### Data
-
-* Custom primary keys
-* Auto-generated IDs
-* Batch operations
-* Upsert
-* Query filters
-
-### Spreadsheet
-
-* Column types
-* Checkbox columns
-* Date formatting
-* Currency formatting
-* Dropdown validation
-* Formula helpers
-
-### Platform
-
-* Driver registration API
-* Additional storage providers
-* Collection hooks
+The Google Apps Script example and its setup instructions are in
+[`examples/README.md`](examples/README.md). Local development and pull request
+verification do not require access to a Google account or spreadsheet.
